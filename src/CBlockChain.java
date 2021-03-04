@@ -21,13 +21,21 @@ public class CBlockChain {
         int hashKey = generateHashKey(name);
         if (table[hashKey] == null)
             return null;
-        return (Customer) table[hashKey].get(0);
+        for (int i = 0; i < table[hashKey].size(); i++) {
+            Customer c = (Customer) table[hashKey].get(i);
+            if (c.name().equals(name))
+                return c;
+        }
+        return null;
     }
 
     //put Customer c into the table
     public void put(Customer c) throws NoSuchAlgorithmException {
         int hashKey = generateHashKey(c.name());
         if (table[hashKey] != null) {
+            if (table[hashKey].contains(c))
+                return;
+            table[hashKey].add(c);
             return;
         }
 
@@ -38,7 +46,9 @@ public class CBlockChain {
     public int generateHashKey(String name) throws NoSuchAlgorithmException {
         MessageDigest messageDigest = MessageDigest.getInstance("SHA-256");
         byte[] shaHash = messageDigest.digest(name.getBytes(StandardCharsets.UTF_8));
+
         int hashKey = toHexString(shaHash).hashCode() % table.length;
+
         if (hashKey < 0) {
             hashKey += table.length;
         }
@@ -62,7 +72,14 @@ public class CBlockChain {
         if (table[hashKey] == null) {
             return null;
         }
-        return (Customer) table[hashKey].remove(0);
+        for (int i = 0; i < table[hashKey].size(); i++) {
+            Customer c = (Customer) table[hashKey].get(i);
+            if (c.name().equals(name)) {
+                table[hashKey].remove(i);
+                return c;
+            }
+        }
+        return null;
 
     }
 
@@ -73,7 +90,7 @@ public class CBlockChain {
             if (a == null)
                 continue;
             if (!a.isEmpty())
-                size++;
+                size += a.size();
         }
         return size;
     }
