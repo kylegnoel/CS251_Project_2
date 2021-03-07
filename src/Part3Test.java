@@ -124,6 +124,12 @@ public class Part3Test {
         pass = true;
         while (!list.isEmpty()) {
             Customer pExp = list.remove(0);
+            Customer a = pq.getMax();
+            if (pExp != a) {
+                System.out.println("HOLD UP");
+                Customer c = pq.get(pExp.name());
+                System.out.println(c.posInQueue());
+            }
             Customer pAct = pq.delMax();
             if (pExp != pAct || pAct.posInQueue() != -1) {
                 printMsg(false, "delMax until empty");

@@ -1,3 +1,6 @@
+import java.security.NoSuchAlgorithmException;
+import java.util.Random;
+
 public class CreditUnion {
 
     private NewCustomerQueue cq;
@@ -9,7 +12,9 @@ public class CreditUnion {
     private int walkedOut = 0;
 
     public CreditUnion(int cap, int cr_threshold) {
-        //TO BE COMPLETED
+        this.capacity = cap;
+        this.cr_threshold = cr_threshold;
+        this.cq = new NewCustomerQueue(cap);
     }
 
     public int cr_threshold() {
@@ -31,18 +36,39 @@ public class CreditUnion {
      *the new Customer into the queue, and return the name
      *of the max Customer
      */
-    public String process(String name, int investment) {
-        //TO BE COMPLETED
+    public String process(String name, int investment) throws NoSuchAlgorithmException {
+        Customer customer = new Customer(name, investment,System.currentTimeMillis());
+
+        if (investment > cr_threshold) {
+            sendToBank(customer);
+            processed++;
+            return null;
+        }
+        if (cq.size() == capacity && investment > cq.getMax().investment()) {
+            sendToBank(customer);
+            processed++;
+            return null;
+        }
+        if (cq.size() == capacity && investment <= cq.getMax().investment()) {
+            sendToBank(cq.delMax());
+            cq.insert(customer);
+            processed++;
+            return name;
+        }
+        cq.insert(customer);
         processed++;
-        return null;
+        return name;
     }
 
     /*a Manager is available--send the Customer with
      *highest investment value to be seen; return the name
      *of the Customer or null if the queue is empty*/
-    public String seeNext() {
-        //TO BE COMPLETED
-        return null;
+    public String seeNext() throws NoSuchAlgorithmException {
+        if (cq.isEmpty())
+            return null;
+        Customer customer = cq.delMax();
+        seeManager(customer);
+        return customer.name();
     }
 
     /*Customer experiences an emergency, raising their
@@ -51,15 +77,34 @@ public class CreditUnion {
      *else update their investment value in the queue;
      *return true if the Customer is removed from the queue
      *and false otherwise*/
-    public boolean handle_emergency(String name) {
-        //TO BE COMPLETED
+    public boolean handle_emergency(String name) throws NoSuchAlgorithmException {
+        Customer c = cq.get(name);
+        if (c == null)
+            return false;
+        double a = Math.random() * 1;
+        int b = (int) (Math.random() * 10);
+        int currentInvestment = c.investment();
+        int updatedInvestment;
+        if (a < 0.5) {
+            updatedInvestment =  currentInvestment - (currentInvestment * b);
+        } else {
+            updatedInvestment =  currentInvestment + (currentInvestment * b);
+        }
+        if (updatedInvestment > cr_threshold) {
+            sendToBank(c);
+            return true;
+        } else if (updatedInvestment <= 0) {
+            walk_out(name);
+            return true;
+        }
+        cq.update(name, updatedInvestment);
         return false;
     }
 
     /*Customer decides to walk out
      *remove them from the queue*/
-    public void walk_out(String name) {
-        //TO BE COMPLETED
+    public void walk_out(String name) throws NoSuchAlgorithmException {
+        cq.remove(name);
         walkedOut++;
     }
 

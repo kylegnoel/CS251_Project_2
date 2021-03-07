@@ -18,6 +18,7 @@ public class NewCustomerQueue {
     public int insert(Customer c) throws NoSuchAlgorithmException {
         if (isEmpty()) {
             array[0] = c;
+            table.put(c);
             return 0;
         }
         if (size() == array.length)
@@ -93,7 +94,7 @@ public class NewCustomerQueue {
     //remove and return the customer with the highest investment value
     //if there are multiple customers with the same investment value,
     //return the one who arrived first
-    public Customer delMax() {
+    public Customer delMax() throws NoSuchAlgorithmException {
         Customer c;
         if (isEmpty())
             return null;
@@ -101,12 +102,14 @@ public class NewCustomerQueue {
             c = array[0];
             array[0] = null;
             c.setPosInQueue(-1);
+            table.remove(c.name());
             return c;
         }
         int i = swimDown(0);
         c = array[i];
         array[i] = null;
         c.setPosInQueue(-1);
+        table.remove(c.name());
         return c;
 
     }
@@ -117,6 +120,7 @@ public class NewCustomerQueue {
         if (isLeaf(i)) {
             return i;
         }
+
         if (isRightEmpty(i)) {
             swap(i, left);
             return swimDown(left);
@@ -141,15 +145,15 @@ public class NewCustomerQueue {
     public Customer getMax() {
         if (isEmpty())
             return null;
-        int max = 0;
-        int index = 0;
-        for (int i = 0; i < size(); i++) {
-            if (array[i].investment() > max) {
-                max = array[i].investment();
-                index = i;
-            }
-        }
-        return array[index];
+//        int max = 0;
+//        int index = 0;
+//        for (int i = 0; i < size(); i++) {
+//            if (array[i].investment() > max) {
+//                max = array[i].investment();
+//                index = i;
+//            }
+//        }
+        return array[0];
     }
 
     //return the number of customers currently in the queue
@@ -178,6 +182,10 @@ public class NewCustomerQueue {
         return array;
     }
 
+    public Customer get(String s) throws NoSuchAlgorithmException {
+        return table.get(s);
+    }
+
     //remove and return the Customer with
     //name s from the queue
     //return null if the Customer isn't in the queue
@@ -195,20 +203,37 @@ public class NewCustomerQueue {
         return customer;
     }
 
-//    public int search(Customer c, int index) {
-//        if (array[index] == null) {
-//            return -1;
-//        }
-//        if (array[index].name().equals(c.name()))
-//            return index;
-//        int left = index * 2 + 1;
-//        int right = index * 2 + 2;
-//        if (array[index].compareTo(c) > 0) {
-//            return search(c, left);
-//        } else {
-//            return search(c, right);
-//        }
-//    }
+    public int swimDownForUpdate (int i) {
+        int left = i * 2 + 1;
+        int right = i * 2 + 2;
+        if (isLeaf(i)) {
+            return i;
+        }
+
+        if (isRightEmpty(i) && array[left].compareTo(array[i]) > 0) {
+            swap(i, left);
+            return swimDownForUpdate(left);
+        }
+        if (isLeftEmpty(i) && array[right].compareTo(array[i]) > 0) {
+            swap(i, right);
+            return swimDownForUpdate(right);
+        }
+
+        if (isLeftEmpty(i) || isRightEmpty(i))
+            return i;
+
+        if (array[i].compareTo(array[right]) > 0 && array[i].compareTo(array[left]) > 0)
+            return i;
+
+        if (array[right].compareTo(array[left]) > 0) {
+            swap(i, right);
+            i = right;
+        } else {
+            swap(i, left);
+            i = left;
+        }
+        return swimDownForUpdate(i);
+    }
 
     //update the emergency level of the Customer
     //with name s to investment
@@ -222,7 +247,7 @@ public class NewCustomerQueue {
         if (investment > currentInvestment) {
             floatUp(index);
         } else {
-            swimDown(index);
+            swimDownForUpdate(index);
         }
 
 
