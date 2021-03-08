@@ -1,5 +1,5 @@
 import java.security.NoSuchAlgorithmException;
-import java.util.Random;
+import java.util.Arrays;
 
 public class CreditUnion {
 
@@ -12,9 +12,9 @@ public class CreditUnion {
     private int walkedOut = 0;
 
     public CreditUnion(int cap, int cr_threshold) {
-        this.capacity = cap;
-        this.cr_threshold = cr_threshold;
         this.cq = new NewCustomerQueue(cap);
+        this.cr_threshold = cr_threshold;
+        this.capacity = cap;
     }
 
     public int cr_threshold() {
@@ -37,26 +37,29 @@ public class CreditUnion {
      *of the max Customer
      */
     public String process(String name, int investment) throws NoSuchAlgorithmException {
+//        System.out.println("capacity: " + capacity);
+//        System.out.println("Threshold: " + cr_threshold);
+//        System.out.println("probability walkin: " + Part4SimTest.pWalkIn);
+//        System.out.println("probability manager available: " + Part4SimTest.pManagerAvailable);
+//        System.out.println("probability emergency: "+ Part4SimTest.pEmergency);
+//        System.out.println("probability walkout: " + Part4SimTest.pWalkOut);
         Customer customer = new Customer(name, investment,System.currentTimeMillis());
+        processed++;
 
         if (investment > cr_threshold) {
             sendToBank(customer);
-            processed++;
             return null;
         }
         if (cq.size() == capacity && investment > cq.getMax().investment()) {
             sendToBank(customer);
-            processed++;
             return null;
         }
         if (cq.size() == capacity && investment <= cq.getMax().investment()) {
             sendToBank(cq.delMax());
             cq.insert(customer);
-            processed++;
             return name;
         }
         cq.insert(customer);
-        processed++;
         return name;
     }
 
@@ -66,9 +69,9 @@ public class CreditUnion {
     public String seeNext() throws NoSuchAlgorithmException {
         if (cq.isEmpty())
             return null;
-        Customer customer = cq.delMax();
-        seeManager(customer);
-        return customer.name();
+        Customer c = cq.delMax();
+        seeManager(c);
+        return c.name();
     }
 
     /*Customer experiences an emergency, raising their
@@ -78,34 +81,41 @@ public class CreditUnion {
      *return true if the Customer is removed from the queue
      *and false otherwise*/
     public boolean handle_emergency(String name) throws NoSuchAlgorithmException {
+        double a = Math.random();
+        int b = (int) Math.random() * 9 + 1;
         Customer c = cq.get(name);
         if (c == null)
             return false;
-        double a = Math.random() * 1;
-        int b = (int) (Math.random() * 10);
-        int currentInvestment = c.investment();
-        int updatedInvestment;
+        if (c.posInQueue() == -1 && cq.size() == 1)
+            c.setPosInQueue(0);
+        int current = c.investment();
+        int updated;
+
         if (a < 0.5) {
-            updatedInvestment =  currentInvestment - (currentInvestment * b);
+            updated = current - (current * (b/100));
         } else {
-            updatedInvestment =  currentInvestment + (currentInvestment * b);
+            updated = current + (current * (b/100));
         }
-        if (updatedInvestment > cr_threshold) {
+        c.setInvestment(updated);
+        if (updated > cr_threshold) {
             sendToBank(c);
+            cq.remove(name);
             return true;
-        } else if (updatedInvestment <= 0) {
+        }
+        if (updated <= 0) {
             walk_out(name);
             return true;
         }
-        cq.update(name, updatedInvestment);
+        cq.update(name, updated);
         return false;
     }
 
     /*Customer decides to walk out
      *remove them from the queue*/
     public void walk_out(String name) throws NoSuchAlgorithmException {
-        cq.remove(name);
-        walkedOut++;
+        Customer c = cq.remove(name);
+        if (c != null)
+            walkedOut++;
     }
 
     /*Indicates that Customer c has been sent to the Bank*/

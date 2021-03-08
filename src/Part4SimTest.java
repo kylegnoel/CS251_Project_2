@@ -40,8 +40,8 @@ public class Part4SimTest {
 
         //continue simulation until all the customers are handled
         while (!customers.isEmpty() || !inQueue.isEmpty()) {
-            System.out.println("customers left: " + customers.size());
-            System.out.println("customers in queue: " + inQueue.size());
+//            System.out.println("customers left: " + customers.size());
+//            System.out.println("customers in queue: " + inQueue.size());
             int prob = gen.nextInt(100);
             if (prob <= pWalkIn)
                 process();
@@ -71,6 +71,7 @@ public class Part4SimTest {
             System.out.println("The numbers add up!");
             score += 13;
         } else {
+            System.out.println("Difference: " + (numCustomers - (creditunion.sentToBank() + creditunion.seenByManager() + creditunion.walkedOut())));
             System.out.println("The numbers don't add up!");
         }
         System.out.println("Part 4 Total Score: " + score);

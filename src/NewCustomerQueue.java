@@ -145,14 +145,6 @@ public class NewCustomerQueue {
     public Customer getMax() {
         if (isEmpty())
             return null;
-//        int max = 0;
-//        int index = 0;
-//        for (int i = 0; i < size(); i++) {
-//            if (array[i].investment() > max) {
-//                max = array[i].investment();
-//                index = i;
-//            }
-//        }
         return array[0];
     }
 
@@ -180,6 +172,14 @@ public class NewCustomerQueue {
     //used for testing underlying data structure
     public Customer[] getArray() {
         return array;
+    }
+
+    public void print() {
+        for (Customer c : array) {
+            if (c != null)
+                System.out.print(c.toString() + ' ');
+        }
+        System.out.println();
     }
 
     public Customer get(String s) throws NoSuchAlgorithmException {
